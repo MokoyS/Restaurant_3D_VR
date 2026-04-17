@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.XR;
 
 public class PlacementManager : MonoBehaviour
 {
@@ -15,7 +14,7 @@ public class PlacementManager : MonoBehaviour
     private Material   _ghostMat;
     private AudioSource _audio;
 
-    private readonly List<InputDevice> _rightControllers = new List<InputDevice>();
+    private readonly List<UnityEngine.XR.InputDevice> _rightControllers = new List<UnityEngine.XR.InputDevice>();
     private bool _prevTrigger = false;
 
     public bool IsPlacing => _prefabToPlace != null;
@@ -62,8 +61,9 @@ public class PlacementManager : MonoBehaviour
         if (!IsPlacing) return;
         if (_cam == null) _cam = Camera.main;
 
-        InputDevices.GetDevicesWithCharacteristics(
-            InputDeviceCharacteristics.Controller | InputDeviceCharacteristics.Right, _rightControllers);
+        UnityEngine.XR.InputDevices.GetDevicesWithCharacteristics(
+            UnityEngine.XR.InputDeviceCharacteristics.Controller | UnityEngine.XR.InputDeviceCharacteristics.Right,
+            _rightControllers);
 
         Vector2 mousePos = Mouse.current != null
             ? Mouse.current.position.ReadValue()
@@ -86,7 +86,7 @@ public class PlacementManager : MonoBehaviour
 
         bool triggerHeld = false;
         if (_rightControllers.Count > 0)
-            _rightControllers[0].TryGetFeatureValue(CommonUsages.triggerButton, out triggerHeld);
+            _rightControllers[0].TryGetFeatureValue(UnityEngine.XR.CommonUsages.triggerButton, out triggerHeld);
         bool triggerDown = triggerHeld && !_prevTrigger;
         _prevTrigger = triggerHeld;
 

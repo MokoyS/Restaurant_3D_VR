@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.XR;
 
 public class XRInteractor : MonoBehaviour
 {
@@ -11,19 +10,20 @@ public class XRInteractor : MonoBehaviour
     private IInteractable _nearest;
     private string _hint;
 
-    private readonly List<InputDevice> _rightControllers = new List<InputDevice>();
+    private readonly List<UnityEngine.XR.InputDevice> _rightControllers = new List<UnityEngine.XR.InputDevice>();
     private bool _prevA = false;
 
     Vector3 HeadPosition => Camera.main != null ? Camera.main.transform.position : transform.position;
 
     void Update()
     {
-        InputDevices.GetDevicesWithCharacteristics(
-            InputDeviceCharacteristics.Controller | InputDeviceCharacteristics.Right, _rightControllers);
+        UnityEngine.XR.InputDevices.GetDevicesWithCharacteristics(
+            UnityEngine.XR.InputDeviceCharacteristics.Controller | UnityEngine.XR.InputDeviceCharacteristics.Right,
+            _rightControllers);
 
         bool aHeld = false;
         if (_rightControllers.Count > 0)
-            _rightControllers[0].TryGetFeatureValue(CommonUsages.primaryButton, out aHeld);
+            _rightControllers[0].TryGetFeatureValue(UnityEngine.XR.CommonUsages.primaryButton, out aHeld);
         bool aPressed = aHeld && !_prevA;
         _prevA = aHeld;
 

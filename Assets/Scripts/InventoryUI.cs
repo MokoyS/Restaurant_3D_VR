@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.XR;
 
 public class InventoryUI : MonoBehaviour
 {
@@ -13,7 +12,7 @@ public class InventoryUI : MonoBehaviour
 
     private bool _open = false;
 
-    private readonly List<InputDevice> _leftControllers = new List<InputDevice>();
+    private readonly List<UnityEngine.XR.InputDevice> _leftControllers = new List<UnityEngine.XR.InputDevice>();
     private bool _prevY = false;
 
     void Start()
@@ -23,12 +22,13 @@ public class InventoryUI : MonoBehaviour
 
     void Update()
     {
-        InputDevices.GetDevicesWithCharacteristics(
-            InputDeviceCharacteristics.Controller | InputDeviceCharacteristics.Left, _leftControllers);
+        UnityEngine.XR.InputDevices.GetDevicesWithCharacteristics(
+            UnityEngine.XR.InputDeviceCharacteristics.Controller | UnityEngine.XR.InputDeviceCharacteristics.Left,
+            _leftControllers);
 
         bool yHeld = false;
         if (_leftControllers.Count > 0)
-            _leftControllers[0].TryGetFeatureValue(CommonUsages.secondaryButton, out yHeld);
+            _leftControllers[0].TryGetFeatureValue(UnityEngine.XR.CommonUsages.secondaryButton, out yHeld);
         bool yPressed = yHeld && !_prevY;
         _prevY = yHeld;
 
