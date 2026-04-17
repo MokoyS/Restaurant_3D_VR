@@ -1,0 +1,12 @@
+# Tout ignorer par défaut
+*
+
+# Sauf les scripts C#
+!Assets/
+!Assets/Scripts/
+!Assets/Scripts/*.cs
+!Assets/Scripts/*.cs.meta
+
+# README et gitignore
+!README.md
+!.gitignore
