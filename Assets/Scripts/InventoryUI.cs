@@ -1,5 +1,7 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.XR;
 
 public class InventoryUI : MonoBehaviour
 {
@@ -11,6 +13,9 @@ public class InventoryUI : MonoBehaviour
 
     private bool _open = false;
 
+    private readonly List<InputDevice> _leftControllers = new List<InputDevice>();
+    private bool _prevY = false;
+
     void Start()
     {
         if (inventoryPanel != null) inventoryPanel.SetActive(false);
@@ -18,8 +23,18 @@ public class InventoryUI : MonoBehaviour
 
     void Update()
     {
+        InputDevices.GetDevicesWithCharacteristics(
+            InputDeviceCharacteristics.Controller | InputDeviceCharacteristics.Left, _leftControllers);
+
+        bool yHeld = false;
+        if (_leftControllers.Count > 0)
+            _leftControllers[0].TryGetFeatureValue(CommonUsages.secondaryButton, out yHeld);
+        bool yPressed = yHeld && !_prevY;
+        _prevY = yHeld;
+
         bool iPressed = Input.GetKeyDown(KeyCode.I)
-                     || (Keyboard.current != null && Keyboard.current.iKey.wasPressedThisFrame);
+                     || (Keyboard.current != null && Keyboard.current.iKey.wasPressedThisFrame)
+                     || yPressed;
         if (iPressed) ToggleInventory();
 
         bool esc = Input.GetKeyDown(KeyCode.Escape)

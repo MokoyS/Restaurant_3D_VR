@@ -1,5 +1,7 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.XR;
 
 public class XRInteractor : MonoBehaviour
 {
@@ -9,14 +11,27 @@ public class XRInteractor : MonoBehaviour
     private IInteractable _nearest;
     private string _hint;
 
+    private readonly List<InputDevice> _rightControllers = new List<InputDevice>();
+    private bool _prevA = false;
+
     Vector3 HeadPosition => Camera.main != null ? Camera.main.transform.position : transform.position;
 
     void Update()
     {
-        FindNearest();
+        InputDevices.GetDevicesWithCharacteristics(
+            InputDeviceCharacteristics.Controller | InputDeviceCharacteristics.Right, _rightControllers);
+
+        bool aHeld = false;
+        if (_rightControllers.Count > 0)
+            _rightControllers[0].TryGetFeatureValue(CommonUsages.primaryButton, out aHeld);
+        bool aPressed = aHeld && !_prevA;
+        _prevA = aHeld;
 
         bool ePressed = Input.GetKeyDown(KeyCode.E)
-                     || (Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame);
+                     || (Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame)
+                     || aPressed;
+
+        FindNearest();
 
         if (ePressed && _nearest != null)
             _nearest.Interact();
@@ -39,9 +54,9 @@ public class XRInteractor : MonoBehaviour
             {
                 bestDist = dist;
                 _nearest = interactable;
-                if (interactable is DoorController)       _hint = "[E]  Porte";
-                else if (interactable is LightSwitch)     _hint = "[E]  Lumières";
-                else _hint = $"[E]  {(interactable as MonoBehaviour)?.gameObject.name ?? col.gameObject.name}";
+                if (interactable is DoorController)       _hint = "[E / A]  Porte";
+                else if (interactable is LightSwitch)     _hint = "[E / A]  Lumières";
+                else _hint = $"[E / A]  {(interactable as MonoBehaviour)?.gameObject.name ?? col.gameObject.name}";
             }
         }
     }

@@ -1,5 +1,7 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.XR;
 
 public class PlacementManager : MonoBehaviour
 {
@@ -12,6 +14,9 @@ public class PlacementManager : MonoBehaviour
     private Camera     _cam;
     private Material   _ghostMat;
     private AudioSource _audio;
+
+    private readonly List<InputDevice> _rightControllers = new List<InputDevice>();
+    private bool _prevTrigger = false;
 
     public bool IsPlacing => _prefabToPlace != null;
 
@@ -57,13 +62,17 @@ public class PlacementManager : MonoBehaviour
         if (!IsPlacing) return;
         if (_cam == null) _cam = Camera.main;
 
+        InputDevices.GetDevicesWithCharacteristics(
+            InputDeviceCharacteristics.Controller | InputDeviceCharacteristics.Right, _rightControllers);
+
         Vector2 mousePos = Mouse.current != null
             ? Mouse.current.position.ReadValue()
             : (Vector2)Input.mousePosition;
 
         Ray ray = _cam.ScreenPointToRay(mousePos);
-        if (Physics.Raycast(ray, out RaycastHit hit, 100f))
-            if (_ghost != null) _ghost.transform.position = hit.point;
+        RaycastHit hit = default;
+        bool didHit = Physics.Raycast(ray, out hit, 100f);
+        if (didHit && _ghost != null) _ghost.transform.position = hit.point;
 
         bool rPressed = Input.GetKeyDown(KeyCode.R)
                      || (Keyboard.current != null && Keyboard.current.rKey.wasPressedThisFrame);
@@ -75,8 +84,16 @@ public class PlacementManager : MonoBehaviour
         if (_ghost != null && Mathf.Abs(scroll) > 0.01f)
             _ghost.transform.Rotate(Vector3.up, scroll > 0 ? 15f : -15f);
 
-        bool place = (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame) || Input.GetMouseButtonDown(0);
-        if (place) { PlaceObject(hit.point); return; }
+        bool triggerHeld = false;
+        if (_rightControllers.Count > 0)
+            _rightControllers[0].TryGetFeatureValue(CommonUsages.triggerButton, out triggerHeld);
+        bool triggerDown = triggerHeld && !_prevTrigger;
+        _prevTrigger = triggerHeld;
+
+        bool place = (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
+                  || Input.GetMouseButtonDown(0)
+                  || triggerDown;
+        if (place && didHit) { PlaceObject(hit.point); return; }
 
         bool cancel = (Mouse.current != null && Mouse.current.rightButton.wasPressedThisFrame)
                    || Input.GetMouseButtonDown(1) || Input.GetKeyDown(KeyCode.Escape)
